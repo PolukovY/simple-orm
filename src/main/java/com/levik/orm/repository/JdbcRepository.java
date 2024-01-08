@@ -6,7 +6,6 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
-import java.util.List;
 import java.util.Objects;
 
 import static com.levik.orm.annotation.EntityUtils.table;
@@ -36,6 +35,7 @@ public class JdbcRepository {
         var query = SELECT_TABLE_BY_ID.formatted(tableName, fieldIdName);
 
         try (var connection = dataSource.getConnection()) {
+            log.info("Query {}", query);
             try(var statement = connection.prepareStatement(query)) {
                 statement.setObject(1, id);
                 var resultSet = statement.executeQuery();

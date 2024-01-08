@@ -15,8 +15,8 @@ public class SessionFactory  implements Closeable {
         jdbcRepository = new JdbcRepository(dataSource);
     }
 
-    public Session openSession() {
-        return new Session(jdbcRepository);
+    public BringSession openSession() {
+        return new FirstLevelCacheSession(new Session(jdbcRepository));
     }
 
     @Override
