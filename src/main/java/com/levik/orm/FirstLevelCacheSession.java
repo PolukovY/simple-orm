@@ -41,12 +41,12 @@ public class FirstLevelCacheSession implements BringSession {
         return clazz.cast(cachedEntity);
     }
 
-    private <T> void insert(Class<T> clazz, Object entity) {
+    private <T> void update(Class<T> clazz, Object entity) {
         var fieldIdType = fieldIdType(clazz);
         var fieldIdValue = fieldIdValue(clazz, entity);
 
         var entityKey = new EntityKey<>(clazz, fieldIdValue, fieldIdType);
-        T insertEntityFromDb = getJdbcRepository().insert(clazz, entity);
+        T insertEntityFromDb = getJdbcRepository().update(clazz, entity);
         firstLevelCache.put(entityKey, insertEntityFromDb);
         log.info("Update Entity {} in firstLevel cache by id {}", clazz.getSimpleName(), fieldIdValue);
         Object[] entityCurrentSnapshot = makeCurrentEntitySnapshot(insertEntityFromDb);
@@ -71,7 +71,7 @@ public class FirstLevelCacheSession implements BringSession {
             var entityOldSnapshot = snapshots.get(entityKey);
             if (!isCurrentSnapshotAndOldSnapshotTheSame(entityInFirstLevelCacheCurrentSnapshot, entityOldSnapshot)) {
                 log.info("Dirty entity found need to generate update for entityKey {} and entity {}", entityKey, entityInFirstLevelCache);
-                insert(entityInFirstLevelCache.getClass(), entityInFirstLevelCache);
+                update(entityInFirstLevelCache.getClass(), entityInFirstLevelCache);
             } else {
                 log.info("Dirty entity not found for entityKey {} no changes", entityKey);
             }

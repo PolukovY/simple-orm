@@ -7,9 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import javax.sql.DataSource;
 import java.sql.PreparedStatement;
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import static com.levik.orm.annotation.EntityUtils.*;
 
@@ -18,16 +16,8 @@ import static com.levik.orm.annotation.EntityUtils.*;
 public class JdbcRepository {
     private static final String NOT_FOUND_RESULT_BY_ID = "Entity '%s' with the %s '%s' in the '%s' table returned no results.";
 
-    private static final String SELECT_TABLE_BY_ID = """
-            select * from %s where %s = ?
-            """;
-
-    private static final String UPDATE_TABLE_BY_ID = "UPDATE %s SET %s WHERE %s = ?";
-    private static final String PARAMETER = " = ?";
-    private static final String COMA = ", ";
-
-
     private final DataSource dataSource;
+    private final SqlBuilder sqlBuilder;
 
     @SneakyThrows
     public <T> T findById(Class<T> clazz, Object id) {
@@ -37,7 +27,7 @@ public class JdbcRepository {
         var tableName = table(clazz);
         var fieldIdName = fieldIdName(clazz);
 
-        var query = SELECT_TABLE_BY_ID.formatted(tableName, fieldIdName);
+        var query = sqlBuilder.selectById(tableName, fieldIdName);
 
         try (var connection = dataSource.getConnection()) {
             log.info("Query {}", query);
@@ -56,7 +46,7 @@ public class JdbcRepository {
 
 
     @SneakyThrows
-    public <T> T insert(Class<T> clazz, Object entity) {
+    public <T> T update(Class<T> clazz, Object entity) {
         Objects.requireNonNull(clazz, "Clazz must be not null");
         Objects.requireNonNull(entity, "Entity must be not null");
 
@@ -64,7 +54,7 @@ public class JdbcRepository {
         var fieldIdName = fieldIdName(clazz);
         var fieldIdValue = fieldIdValue(clazz, entity);
 
-        String query  = buildInsertQuery(entity, tableName, fieldIdName);
+        String query  = sqlBuilder.update(entity, tableName, fieldIdName);
 
         try (var connection = dataSource.getConnection()) {
             log.info("Query: {}", query);
@@ -79,8 +69,8 @@ public class JdbcRepository {
     }
 
     @SneakyThrows
-    private static void populatePreparedStatement(Object entity, PreparedStatement statement,
-                                                 String fieldIdName, Object fieldIdValue) {
+    private void populatePreparedStatement(Object entity, PreparedStatement statement,
+                                           String fieldIdName, Object fieldIdValue) {
         int parameterIndex = 1;
         for (var field : entity.getClass().getDeclaredFields()) {
             if (!fieldIdName.equals(fieldName(field))) {
@@ -89,15 +79,5 @@ public class JdbcRepository {
             }
         }
         statement.setObject(parameterIndex, fieldIdValue);
-    }
-
-    private String buildInsertQuery(Object entity, String tableName, String fieldIdName) {
-        var declaredFields = entity.getClass().getDeclaredFields();
-        String setFields = Arrays.stream(declaredFields)
-                .filter(field -> !fieldName(field).equals(fieldIdName))
-                .map(field -> fieldName(field) + PARAMETER)
-                .collect(Collectors.joining(COMA));
-
-       return UPDATE_TABLE_BY_ID.formatted(tableName, setFields, fieldIdName);
     }
 }
