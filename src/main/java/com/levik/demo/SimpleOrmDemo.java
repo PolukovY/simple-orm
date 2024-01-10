@@ -3,9 +3,9 @@ package com.levik.demo;
 import com.levik.demo.entity.Person;
 import com.levik.orm.BringSession;
 import com.levik.orm.SessionFactory;
+import com.levik.pool.CustomConnectionDataSource;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.postgresql.ds.PGSimpleDataSource;
 
 import javax.sql.DataSource;
 
@@ -24,11 +24,8 @@ public class SimpleOrmDemo {
     }
 
     public static DataSource createDataSource() {
-        var dataSource = new PGSimpleDataSource();
-        dataSource.setURL("jdbc:postgresql://localhost:5432/db");
-        dataSource.setDatabaseName("db");
-        dataSource.setUser("user");
-        dataSource.setPassword("password");
-        return dataSource;
+        return new CustomConnectionDataSource(
+                "jdbc:postgresql://localhost:5432/db",  "user", "password"
+        );
     }
 }
