@@ -36,6 +36,20 @@ public class EntityUtils {
                 .orElseThrow(() -> new EntityIdentityNotFound("Id not found in entity " + clazz.getSimpleName()));
     }
 
+    public static Object fieldIdValue(Class<?> clazz, Object entity) {
+        return Arrays.stream(clazz.getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(Id.class))
+                .map(field -> getValueFromObject(entity, field))
+                .findFirst()
+                .orElseThrow(() -> new EntityIdentityNotFound("Id not found in entity " + clazz.getSimpleName()));
+    }
+
+    @SneakyThrows
+    private static Object getValueFromObject(Object entity, Field field) {
+        field.setAccessible(true);
+        return field.get(entity);
+    }
+
     public static Class<?> fieldIdType(Class<?> clazz) {
         return Arrays.stream(clazz.getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(Id.class))
@@ -96,5 +110,30 @@ public class EntityUtils {
         }
 
         return obj;
+    }
+
+    @SneakyThrows
+    public static Object[] makeCurrentEntitySnapshot(Object entity) {
+        Objects.requireNonNull(entity, "Entity should not be null");
+        Class<?> aClass = entity.getClass();
+        Field[] declaredFields = aClass.getDeclaredFields();
+        Object[] snapshot = new Object[declaredFields.length];
+
+        for (int  i = 0; i < declaredFields.length; i++) {
+            Object value = getValueFromObject(entity, declaredFields[i]);
+            snapshot[i] = value;
+        }
+
+        return snapshot;
+    }
+
+    public static boolean isCurrentSnapshotAndOldSnapshotTheSame(Object[] currentEntitySnapshot, Object[] oldEntitySnapshot) {
+        for (int i = 0; i < currentEntitySnapshot.length; i++) {
+            if (!currentEntitySnapshot[i].equals(oldEntitySnapshot[i])) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

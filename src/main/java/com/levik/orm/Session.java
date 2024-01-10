@@ -8,11 +8,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Session implements BringSession {
 
-    private final JdbcRepository jdbcRepository;
+    protected final JdbcRepository jdbcRepository;
 
     @Override
     public <T> T findById(Class<T> clazz, Object id) {
         return jdbcRepository.findById(clazz, id);
+    }
+
+    @Override
+    public JdbcRepository getJdbcRepository() {
+        return jdbcRepository;
     }
 
     @Override
