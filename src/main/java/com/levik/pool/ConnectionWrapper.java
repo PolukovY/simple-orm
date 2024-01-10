@@ -71,6 +71,11 @@ public class ConnectionWrapper implements Connection {
         statements.forEach(st -> {
             try {
                 st.close();
+                st.clearBatch();
+                st.clearWarnings();
+                if (!st.isClosed()) {
+                    st.close();
+                }
             } catch (SQLException e) {
                 throw new RuntimeException(e);
             }
