@@ -66,13 +66,12 @@ public class FirstLevelCacheSession implements BringSession {
 
     private void checkDirtyCheckingEntities() {
         for (EntityKey<?> entityKey : firstLevelCache.keySet()) {
-            Object entityInFirstLevelCache = firstLevelCache.get(entityKey);
-            Object[] entityInFirstLevelCacheCurrentSnapshot = makeCurrentEntitySnapshot(entityInFirstLevelCache);
-            Object[] entityOldSnapshot = snapshots.get(entityKey);
-
+            var entityInFirstLevelCache = firstLevelCache.get(entityKey);
+            var entityInFirstLevelCacheCurrentSnapshot = makeCurrentEntitySnapshot(entityInFirstLevelCache);
+            var entityOldSnapshot = snapshots.get(entityKey);
             if (!isCurrentSnapshotAndOldSnapshotTheSame(entityInFirstLevelCacheCurrentSnapshot, entityOldSnapshot)) {
                 log.info("Dirty entity found need to generate update for entityKey {} and entity {}", entityKey, entityInFirstLevelCache);
-                insert(entityInFirstLevelCache.getClass(),entityInFirstLevelCache);
+                insert(entityInFirstLevelCache.getClass(), entityInFirstLevelCache);
             } else {
                 log.info("Dirty entity not found for entityKey {} no changes", entityKey);
             }

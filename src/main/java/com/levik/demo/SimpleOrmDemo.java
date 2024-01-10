@@ -18,7 +18,7 @@ public class SimpleOrmDemo {
         SessionFactory sessionFactory = new SessionFactory(dataSource);
         try (BringSession session = sessionFactory.openSession()) {
             Person person = session.findById(Person.class, 1L);
-            person.setLastName("Test1123456");
+            person.setLastName("Test11234567");
             Person person2 = session.findById(Person.class, 1);
             log.info("Person {}",  person == person2);
         }

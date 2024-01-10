@@ -16,7 +16,6 @@ import static com.levik.orm.annotation.EntityUtils.*;
 @RequiredArgsConstructor
 @Slf4j
 public class JdbcRepository {
-
     private static final String NOT_FOUND_RESULT_BY_ID = "Entity '%s' with the %s '%s' in the '%s' table returned no results.";
 
     private static final String SELECT_TABLE_BY_ID = """
@@ -24,6 +23,8 @@ public class JdbcRepository {
             """;
 
     private static final String UPDATE_TABLE_BY_ID = "UPDATE %s SET %s WHERE %s = ?";
+    private static final String PARAMETER = " = ?";
+    private static final String COMA = ", ";
 
 
     private final DataSource dataSource;
@@ -83,8 +84,7 @@ public class JdbcRepository {
         int parameterIndex = 1;
         for (var field : entity.getClass().getDeclaredFields()) {
             if (!fieldIdName.equals(fieldName(field))) {
-                field.setAccessible(true);
-                var fieldValue = field.get(entity);
+                var fieldValue = getValueFromObject(entity, field);
                 statement.setObject(parameterIndex++, fieldValue);
             }
         }
@@ -95,8 +95,8 @@ public class JdbcRepository {
         var declaredFields = entity.getClass().getDeclaredFields();
         String setFields = Arrays.stream(declaredFields)
                 .filter(field -> !fieldName(field).equals(fieldIdName))
-                .map(field -> fieldName(field) + " = ?")
-                .collect(Collectors.joining(", "));
+                .map(field -> fieldName(field) + PARAMETER)
+                .collect(Collectors.joining(COMA));
 
        return UPDATE_TABLE_BY_ID.formatted(tableName, setFields, fieldIdName);
     }

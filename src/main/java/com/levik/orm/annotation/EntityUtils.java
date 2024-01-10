@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 import static java.util.Optional.ofNullable;
 
@@ -45,7 +46,7 @@ public class EntityUtils {
     }
 
     @SneakyThrows
-    private static Object getValueFromObject(Object entity, Field field) {
+    public static Object getValueFromObject(Object entity, Field field) {
         field.setAccessible(true);
         return field.get(entity);
     }
@@ -128,12 +129,7 @@ public class EntityUtils {
     }
 
     public static boolean isCurrentSnapshotAndOldSnapshotTheSame(Object[] currentEntitySnapshot, Object[] oldEntitySnapshot) {
-        for (int i = 0; i < currentEntitySnapshot.length; i++) {
-            if (!currentEntitySnapshot[i].equals(oldEntitySnapshot[i])) {
-                return false;
-            }
-        }
-
-        return true;
+        return IntStream.range(0, currentEntitySnapshot.length)
+                .allMatch(i -> currentEntitySnapshot[i].equals(oldEntitySnapshot[i]));
     }
 }
