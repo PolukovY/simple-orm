@@ -1,5 +1,7 @@
 package com.levik.pool;
 
+import lombok.SneakyThrows;
+
 import java.sql.*;
 import java.util.*;
 import java.util.concurrent.Executor;
@@ -59,9 +61,13 @@ public class ConnectionWrapper implements Connection {
         physicalConnection.rollback();
     }
 
+    @SneakyThrows
     @Override
     public void close() {
-        connectionPool.add(this);
+        this.getTypeMap().clear();
+        this.setAutoCommit(true);
+        this.setReadOnly(false);
+        this.setTransactionIsolation(Connection.TRANSACTION_READ_COMMITTED);
         statements.forEach(st -> {
             try {
                 st.close();
@@ -69,6 +75,8 @@ public class ConnectionWrapper implements Connection {
                 throw new RuntimeException(e);
             }
         });
+        statements.clear();
+        connectionPool.add(this);
     }
 
     @Override
